@@ -6,6 +6,8 @@
   'use strict';
 
   var CFG = window.APP_CONFIG || {};
+  // config.js না পাওয়া গেলেও যেন চলে — এখানে ডিফল্ট ঠিকানা রাখা আছে
+  var API_URL = String(CFG.API_URL || 'https://script.google.com/macros/s/AKfycby64MfacaLt3ZkYc0cFW9HHacJccBkUlt0-ar4gM9vqF04PL7yS93VqI8z6E5BZrnLb9Q/exec').trim();
 
   /* ---------- constants ---------- */
   var LS = { cache: 'nh_cache_v2', key: 'nh_key', notif: 'nh_notif_on', notifDay: 'nh_notif_day', bannerDay: 'nh_banner_day', calMode: 'nh_cal_mode' };
@@ -183,21 +185,27 @@
     var key = lsGet(LS.key) || '';
     var req;
     if (write) {
-      req = fetch(CFG.API_URL, {
+      req = fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(Object.assign({ action: action, key: key }, payload))
       });
     } else {
-      req = fetch(CFG.API_URL + '?' + new URLSearchParams(Object.assign({ action: action, key: key }, payload)).toString());
+      req = fetch(API_URL + '?' + new URLSearchParams(Object.assign({ action: action, key: key }, payload)).toString());
     }
-    return req.then(function (res) { return res.text(); })
+    var meta = '';
+    return req.then(function (res) {
+      var host = ''; try { host = new URL(res.url).host; } catch (ue) { /* ignore */ }
+      meta = ' [HTTP ' + (res.status || '?') + (host ? ' · ' + host : '') + ']';
+      return res.text();
+    })
       .then(function (txt) {
         var json;
         try { json = JSON.parse(txt); } catch (pe) {
           var be = new Error(/accounts\.google|ServiceLogin|signin/i.test(txt)
             ? 'ব্যাকেন্ড লগইন চাইছে — Deploy-এ "Who has access" = Anyone দিন'
-            : 'ব্যাকেন্ড থেকে ডেটা আসছে না — নতুন Code.gs পেস্ট করে Deploy → Manage deployments → Edit → New version দিয়েছেন কি?');
+            : 'ব্যাকেন্ড থেকে ডেটা আসছে না — নতুন Code.gs পেস্ট করে Deploy → Manage deployments → Edit → New version দিয়েছেন কি?') ;
+          be.message += meta;
           be.code = 'badresponse'; throw be;
         }
         if (!json.ok) { var e = new Error(json.error === 'unauthorized' ? 'অ্যাক্সেস কী সঠিক নয়' : (json.error || 'Error')); e.code = json.error; throw e; }
