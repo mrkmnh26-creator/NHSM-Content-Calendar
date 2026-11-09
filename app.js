@@ -72,7 +72,7 @@
       (action ? '<button type="button" class="toast-act">' + esc(action.label) + '</button>' : '');
     if (action) $('.toast-act', el).addEventListener('click', function () { el.remove(); action.fn(); });
     $('#toasts').appendChild(el);
-    setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 300); }, type === 'err' ? 3600 : (action ? 5500 : 2200));
+    setTimeout(function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 300); }, type === 'err' ? 7000 : (action ? 5500 : 2200));
   }
 
   function countTo(el, n) {
@@ -191,8 +191,15 @@
     } else {
       req = fetch(CFG.API_URL + '?' + new URLSearchParams(Object.assign({ action: action, key: key }, payload)).toString());
     }
-    return req.then(function (res) { return res.json(); })
-      .then(function (json) {
+    return req.then(function (res) { return res.text(); })
+      .then(function (txt) {
+        var json;
+        try { json = JSON.parse(txt); } catch (pe) {
+          var be = new Error(/accounts\.google|ServiceLogin|signin/i.test(txt)
+            ? 'ব্যাকেন্ড লগইন চাইছে — Deploy-এ "Who has access" = Anyone দিন'
+            : 'ব্যাকেন্ড থেকে ডেটা আসছে না — নতুন Code.gs পেস্ট করে Deploy → Manage deployments → Edit → New version দিয়েছেন কি?');
+          be.code = 'badresponse'; throw be;
+        }
         if (!json.ok) { var e = new Error(json.error === 'unauthorized' ? 'অ্যাক্সেস কী সঠিক নয়' : (json.error || 'Error')); e.code = json.error; throw e; }
         sync(-1, false);
         return json.data;
