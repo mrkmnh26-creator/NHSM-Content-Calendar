@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00A651">
+<meta name="description" content="NH Feed Mill BD — Social Media Content Calendar">
+<title>Content Calendar · NH Feed Mill BD</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============ Icon sprite ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-calendar-plus" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+</defs></svg>
+
+<!-- ============ Top bar ============ -->
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#calendar" aria-label="Content Calendar">
+      <img class="logo" src="assets/logo.png" alt="NH logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+      <span class="logo-mark" style="display:none">NH</span>
+      <span class="brand-text"><b>Content Calendar</b><small>Admin &amp; HR (Branding) · NH Feed Mill BD Ltd.</small></span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="মূল মেনু">
+      <button class="nav-btn active" data-view="calendar"><svg class="i"><use href="#i-calendar"/></svg><span>ক্যালেন্ডার</span></button>
+      <button class="nav-btn" data-view="captions"><svg class="i"><use href="#i-message"/></svg><span>পোস্ট ক্যাপশন</span></button>
+      <button class="nav-btn" data-view="drafts"><svg class="i"><use href="#i-pen"/></svg><span>ক্যাপশন ড্রাফট</span><em class="nav-new">নতুন</em></button>
+    </nav>
+
+    <div class="top-actions">
+      <span id="syncDot" class="sync" title="সিঙ্ক অবস্থা"></span>
+      <button class="icon-btn" id="refreshBtn" title="রিফ্রেশ" aria-label="রিফ্রেশ"><svg class="i"><use href="#i-refresh"/></svg></button>
+      <button class="icon-btn" id="bellBtn" title="রিমাইন্ডার" aria-label="রিমাইন্ডার"><svg class="i"><use href="#i-bell"/></svg><span class="badge" id="bellBadge" hidden>0</span></button>
+      <button class="icon-btn" id="settingsBtn" title="সেটিংস" aria-label="সেটিংস"><svg class="i"><use href="#i-sliders"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<div id="remindBanner" class="banner" hidden>
+  <div class="banner-in">
+    <svg class="i"><use href="#i-bell"/></svg>
+    <span id="bannerText"></span>
+    <button class="btn sm light" id="bannerView">দেখুন</button>
+    <button class="icon-btn sm" id="bannerClose" aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+  </div>
+</div>
+
+<!-- Reminder panel -->
+<div class="bell-pop" id="bellPanel" hidden>
+  <div class="bell-head"><b>রিমাইন্ডার</b><span id="bellSub"></span></div>
+  <div class="bell-body" id="bellBody"></div>
+</div>
+
+<main class="page">
+
+  <!-- ============ CALENDAR ============ -->
+  <section class="view" id="view-calendar">
+    <div class="page-head">
+      <div class="cal-nav">
+        <button class="icon-btn" id="prevBtn" aria-label="আগের মাস"><svg class="i"><use href="#i-chev-l"/></svg></button>
+        <div class="month-wrap">
+          <button class="month-btn" id="monthBtn"><span id="monthLabel"></span><svg class="i"><use href="#i-chev-d"/></svg></button>
+          <div class="pop" id="monthPop" hidden>
+            <label for="selMonth">মাস</label><select id="selMonth"></select>
+            <label for="selYear">বছর</label><select id="selYear"></select>
+            <div class="pop-actions"><button class="btn sm ghost" id="monthToday">আজ</button><button class="btn sm primary" id="monthApply">প্রয়োগ</button></div>
+          </div>
+        </div>
+        <button class="icon-btn" id="nextBtn" aria-label="পরের মাস"><svg class="i"><use href="#i-chev-r"/></svg></button>
+        <button class="btn ghost sm" id="todayBtn">আজ</button>
+      </div>
+      <div class="head-right">
+        <div class="seg" id="modeSeg">
+          <button data-mode="grid"><svg class="i"><use href="#i-grid"/></svg><span>মাস</span></button>
+          <button data-mode="list"><svg class="i"><use href="#i-list"/></svg><span>তালিকা</span></button>
+        </div>
+        <button class="btn ghost" id="exportPostsBtn" title="সব পোস্ট CSV হিসেবে"><svg class="i"><use href="#i-download"/></svg><span class="hide-sm">CSV</span></button>
+        <button class="btn primary" id="addPostBtn"><svg class="i"><use href="#i-plus"/></svg><span>নতুন কনটেন্ট</span></button>
+      </div>
+    </div>
+
+    <div class="chips scroll-x" id="calTagChips"></div>
+
+    <div class="stats" id="stats">
+      <div class="stat"><span class="stat-l">চলতি মাসে যোগ করা কাজ</span><span class="stat-v" id="sMonth">0</span><span class="stat-s" id="sMonthSub"></span></div>
+      <div class="stat"><span class="stat-l">চলতি বছরে মোট কাজ</span><span class="stat-v" id="sYear">0</span><span class="stat-s" id="sYearSub"></span></div>
+      <div class="stat"><span class="stat-l">এ মাসে সম্পন্ন (Done)</span><span class="stat-v" id="sDone">0</span><span class="stat-s" id="sDoneSub"></span></div>
+      <div class="stat accent"><span class="stat-l">আসন্ন (Pending)</span><span class="stat-v" id="sUp">0</span><span class="stat-s" id="sUpSub"></span></div>
+    </div>
+
+    <div id="gridWrap">
+      <div class="dow-row" id="dowRow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    <div id="agenda" hidden></div>
+  </section>
+
+  <!-- ============ POST CAPTIONS ============ -->
+  <section class="view" id="view-captions" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="h1">পোস্ট ক্যাপশন</h1>
+        <p class="sub">শিডিউল করা সব পোস্টের ক্যাপশন এক জায়গায় — লিখুন, সেভ করুন, কপি করুন</p>
+      </div>
+      <div class="head-right">
+        <button class="btn ghost" id="copyAllBtn"><svg class="i"><use href="#i-copy"/></svg><span>সব ক্যাপশন কপি</span></button>
+      </div>
+    </div>
+
+    <div class="panel filters">
+      <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="libSearch" placeholder="টাইটেল, নোট বা ক্যাপশন দিয়ে খুঁজুন…"></div>
+      <div class="row">
+        <div class="chips" id="libPresets">
+          <button class="chip" data-preset="today">আজ</button>
+          <button class="chip" data-preset="week">এই সপ্তাহ</button>
+          <button class="chip" data-preset="month">এই মাস</button>
+          <button class="chip" data-preset="all">সব</button>
+        </div>
+        <div class="dates"><input type="date" id="libFrom" aria-label="থেকে"><span>→</span><input type="date" id="libTo" aria-label="পর্যন্ত"></div>
+      </div>
+      <div class="row">
+        <div class="seg" id="libCapSeg">
+          <button data-cap="all" class="active">সব পোস্ট</button>
+          <button data-cap="missing">ক্যাপশন নেই</button>
+          <button data-cap="has">ক্যাপশন আছে</button>
+        </div>
+        <select id="libStatus" class="select">
+          <option value="all">সব স্ট্যাটাস</option><option value="Pending">Pending</option><option value="Done">Done</option><option value="Postpone">Postpone</option>
+        </select>
+        <div class="chips scroll-x" id="libTagChips"></div>
+      </div>
+    </div>
+    <div class="summary" id="libSummary"></div>
+    <div id="libList" class="stagger"></div>
+  </section>
+
+  <!-- ============ DRAFTS ============ -->
+  <section class="view" id="view-drafts" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="h1">ক্যাপশন ড্রাফট</h1>
+        <p class="sub">প্রোডাক্ট অনুযায়ী ক্যাপশন লিখে রাখুন — দরকার মতো ফিল্টার করে কপি বা ক্যালেন্ডারে শিডিউল করুন</p>
+      </div>
+      <div class="head-right">
+        <button class="btn ghost" id="exportDraftsBtn"><svg class="i"><use href="#i-download"/></svg><span class="hide-sm">CSV</span></button>
+        <button class="btn primary" id="newDraftBtn"><svg class="i"><use href="#i-plus"/></svg><span>নতুন ড্রাফট</span></button>
+      </div>
+    </div>
+
+    <div class="dr-layout">
+      <aside class="dr-side">
+        <div class="side-title">প্রোডাক্ট</div>
+        <div class="prod-list scroll-x" id="prodList"></div>
+      </aside>
+      <div class="dr-main">
+        <div class="panel filters">
+          <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="drSearch" placeholder="ড্রাফট খুঁজুন (টাইটেল, ক্যাপশন, হ্যাশট্যাগ)…"></div>
+          <div class="row">
+            <div class="chips scroll-x" id="drCatChips"></div>
+          </div>
+          <div class="row">
+            <select id="drPlatform" class="select"></select>
+            <select id="drStatus" class="select"></select>
+            <select id="drSort" class="select">
+              <option value="new">নতুন আগে</option><option value="old">পুরনো আগে</option><option value="az">প্রোডাক্ট A–Z</option>
+            </select>
+            <button class="chip fav-chip" id="drFav"><svg class="i"><use href="#i-star"/></svg>ফেভারিট</button>
+          </div>
+        </div>
+        <div class="summary" id="drSummary"></div>
+        <div id="drList" class="dr-grid stagger"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Mobile bottom bar -->
+<nav class="tabbar" id="tabbar" aria-label="মোবাইল মেনু">
+  <button class="tab active" data-view="calendar"><svg class="i"><use href="#i-calendar"/></svg><span>ক্যালেন্ডার</span></button>
+  <button class="tab" data-view="captions"><svg class="i"><use href="#i-message"/></svg><span>ক্যাপশন</span></button>
+  <button class="tab" data-view="drafts"><svg class="i"><use href="#i-pen"/></svg><span>ড্রাফট</span></button>
+</nav>
+<button class="fab" id="fab" aria-label="নতুন যোগ করুন"><svg class="i"><use href="#i-plus"/></svg></button>
+
+<div id="toasts" aria-live="polite"></div>
+
+<!-- ============ Modal: Day (add/edit posts) ============ -->
+<div class="backdrop" id="m-day" hidden>
+  <div class="modal modal-lg" role="dialog" aria-modal="true" aria-labelledby="dayTitle">
+    <div class="modal-head">
+      <div><h2 id="dayTitle"></h2><p class="sub" id="daySub"></p></div>
+      <button class="icon-btn" data-close aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div id="dayList"></div>
+
+      <form class="form-card" id="dayForm" autocomplete="off">
+        <div class="form-title"><span id="formTitle">নতুন কনটেন্ট</span><button type="button" class="btn sm ghost" id="cancelEdit" hidden>এডিট বাতিল</button></div>
+        <label class="fl">Content টাইটেল<input type="text" id="fTitle" placeholder="যেমনঃ Broiler Feed – SMP Oct"></label>
+        <div class="fl">ট্যাগ (একাধিক বাছাই করা যাবে)<div class="chips" id="fTags"></div></div>
+        <div class="grid2">
+          <label class="fl">তারিখ<input type="date" id="fDate"></label>
+          <label class="fl">সময়<input type="time" id="fTime" value="10:00"></label>
+        </div>
+        <label class="fl">নোট (ঐচ্ছিক)<textarea id="fNotes" rows="2" placeholder="দায়িত্বে কে আছে, ইত্যাদি"></textarea></label>
+        <label class="fl">ক্যাপশন (ঐচ্ছিক)<textarea id="fCaption" rows="4" placeholder="পোস্টের ক্যাপশন…"></textarea></label>
+        <div class="form-actions">
+          <button type="button" class="btn ghost" data-close>বন্ধ করুন</button>
+          <button type="submit" class="btn primary" id="saveDayBtn">Content যোগ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Draft form ============ -->
+<div class="backdrop" id="m-draft" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="draftTitle">
+    <div class="modal-head">
+      <div><h2 id="draftTitle">নতুন ড্রাফট</h2><p class="sub">প্রোডাক্ট ধরে ক্যাপশন সাজিয়ে রাখুন</p></div>
+      <button class="icon-btn" data-close aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <form class="modal-body" id="draftForm" autocomplete="off">
+      <div class="grid2">
+        <label class="fl">প্রোডাক্ট<input type="text" id="dProduct" list="productList" placeholder="যেমনঃ Broiler Starter"></label>
+        <label class="fl">প্ল্যাটফর্ম<select id="dPlatform"></select></label>
+      </div>
+      <datalist id="productList"></datalist>
+      <div class="fl">ক্যাটাগরি<div class="chips" id="dCats"></div></div>
+      <label class="fl">টাইটেল / উপলক্ষ<input type="text" id="dTitle" placeholder="যেমনঃ ঠান্ডায় ব্রয়লার পরিচর্যা"></label>
+      <label class="fl">ক্যাপশন<textarea id="dCaption" rows="6" placeholder="ক্যাপশন লিখুন…"></textarea><span class="counter" id="dCount">0 অক্ষর</span></label>
+      <div class="grid2">
+        <label class="fl">হ্যাশট্যাগ<input type="text" id="dTags" placeholder="#NewHope #Poultry"></label>
+        <label class="fl">স্ট্যাটাস<select id="dStatus"></select></label>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn ghost" data-close>বাতিল</button>
+        <button type="submit" class="btn primary" id="saveDraftBtn">ড্রাফট সেভ করুন</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Modal: Schedule draft ============ -->
+<div class="backdrop" id="m-sched" hidden>
+  <div class="modal modal-sm" role="dialog" aria-modal="true" aria-labelledby="schedHead">
+    <div class="modal-head">
+      <div><h2 id="schedHead">ক্যালেন্ডারে যোগ করুন</h2><p class="sub">ড্রাফটটি নির্দিষ্ট তারিখে শিডিউল হবে</p></div>
+      <button class="icon-btn" data-close aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <form class="modal-body" id="schedForm">
+      <label class="fl">পোস্টের টাইটেল<input type="text" id="sTitle"></label>
+      <div class="grid2">
+        <label class="fl">তারিখ<input type="date" id="sDate" required></label>
+        <label class="fl">সময়<input type="time" id="sTime" value="10:00"></label>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn ghost" data-close>বাতিল</button>
+        <button type="submit" class="btn primary">শিডিউল করুন</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Modal: Settings ============ -->
+<div class="backdrop" id="m-settings" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="setHead">
+    <div class="modal-head">
+      <div><h2 id="setHead">সেটিংস</h2><p class="sub">রিমাইন্ডার ও নোটিফিকেশন</p></div>
+      <button class="icon-btn" data-close aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <form class="modal-body" id="setForm" autocomplete="off">
+      <div class="set-block">
+        <div class="set-row">
+          <div><b>ইমেইল রিমাইন্ডার</b><p class="sub">পোস্টের তারিখ ঘনিয়ে এলে প্রতিদিন নির্দিষ্ট সময়ে ইমেইল যাবে (অ্যাপ বন্ধ থাকলেও)</p></div>
+          <label class="switch"><input type="checkbox" id="setEnabled"><span></span></label>
+        </div>
+        <div class="set-fields" id="setFields">
+          <label class="fl">ইমেইল ঠিকানা<input type="email" id="setEmail" placeholder="you@example.com"></label>
+          <div class="grid2">
+            <label class="fl">কত দিন আগে থেকে<select id="setDays"></select></label>
+            <label class="fl">প্রতিদিন কখন<select id="setHour"></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="setOverdue"> সময় পেরিয়ে যাওয়া Pending পোস্টও জানাবে</label>
+          <div class="set-note" id="setTrig"></div>
+          <button type="button" class="btn ghost sm" id="testMailBtn"><svg class="i"><use href="#i-mail"/></svg>টেস্ট ইমেইল পাঠান</button>
+        </div>
+      </div>
+
+      <div class="set-block">
+        <div class="set-row">
+          <div><b>ব্রাউজার নোটিফিকেশন</b><p class="sub">অ্যাপ খোলা থাকলে আজকের পোস্টের জন্য এই ডিভাইসে নোটিফিকেশন আসবে</p></div>
+          <label class="switch"><input type="checkbox" id="setNotif"><span></span></label>
+        </div>
+      </div>
+
+      <div class="set-block" id="setAccess" hidden>
+        <div class="set-row">
+          <div><b>অ্যাক্সেস কী</b><p class="sub">এই ডিভাইসে কী সংরক্ষিত আছে</p></div>
+          <button type="button" class="btn ghost sm" id="logoutBtn"><svg class="i"><use href="#i-lock"/></svg>কী মুছুন</button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn ghost" data-close>বন্ধ করুন</button>
+        <button type="submit" class="btn primary" id="saveSetBtn">সেভ করুন</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Modal: Confirm ============ -->
+<div class="backdrop top" id="m-confirm" hidden>
+  <div class="modal modal-xs" role="alertdialog" aria-modal="true">
+    <div class="modal-body center">
+      <div class="warn-ico"><svg class="i"><use href="#i-alert"/></svg></div>
+      <h2 id="cfTitle"></h2>
+      <p class="sub" id="cfText"></p>
+      <div class="form-actions">
+        <button type="button" class="btn ghost" id="cfCancel">বাতিল</button>
+        <button type="button" class="btn danger" id="cfOk">হ্যাঁ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Modal: Lock ============ -->
+<div class="backdrop top" id="m-lock" hidden>
+  <div class="modal modal-xs" role="dialog" aria-modal="true">
+    <form class="modal-body center" id="lockForm">
+      <div class="lock-ico"><svg class="i"><use href="#i-lock"/></svg></div>
+      <h2>অ্যাক্সেস কী দিন</h2>
+      <p class="sub" id="lockMsg">এই ক্যালেন্ডার খুলতে পাসকোড প্রয়োজন।</p>
+      <input type="password" id="lockInput" placeholder="পাসকোড" autocomplete="current-password">
+      <div class="form-actions"><button type="submit" class="btn primary" style="flex:1">খুলুন</button></div>
+    </form>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
