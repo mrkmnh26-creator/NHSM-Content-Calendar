@@ -41,6 +41,9 @@
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   <symbol id="i-mail" viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></symbol>
   <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h13l-2 4 2 4H4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
 </defs></svg>
 
@@ -56,7 +59,8 @@
     <nav class="nav" id="nav" aria-label="মূল মেনু">
       <button class="nav-btn active" data-view="calendar"><svg class="i"><use href="#i-calendar"/></svg><span>ক্যালেন্ডার</span></button>
       <button class="nav-btn" data-view="captions"><svg class="i"><use href="#i-message"/></svg><span>পোস্ট ক্যাপশন</span></button>
-      <button class="nav-btn" data-view="drafts"><svg class="i"><use href="#i-pen"/></svg><span>ক্যাপশন ড্রাফট</span><em class="nav-new">নতুন</em></button>
+      <button class="nav-btn" data-view="drafts"><svg class="i"><use href="#i-pen"/></svg><span>ক্যাপশন ড্রাফট</span></button>
+      <button class="nav-btn" data-view="campaigns"><svg class="i"><use href="#i-flag"/></svg><span>Campaign Draft</span><em class="nav-new">নতুন</em></button>
     </nav>
 
     <div class="top-actions">
@@ -204,6 +208,33 @@
       </div>
     </div>
   </section>
+
+  <!-- ============ CAMPAIGN DRAFTS ============ -->
+  <section class="view" id="view-campaigns" hidden>
+    <div class="page-head">
+      <div>
+        <h1 class="h1">Campaign Draft</h1>
+        <p class="sub">ক্যাম্পেইনের নাম, প্রোডাক্ট, আইডিয়া, লিংক ও টাস্ক এক জায়গায় সাজিয়ে রাখুন</p>
+      </div>
+      <div class="head-right">
+        <button class="btn ghost" id="exportCampBtn"><svg class="i"><use href="#i-download"/></svg><span class="hide-sm">CSV</span></button>
+        <button class="btn primary" id="newCampBtn"><svg class="i"><use href="#i-plus"/></svg><span>নতুন ক্যাম্পেইন</span></button>
+      </div>
+    </div>
+    <div class="panel filters">
+      <div class="search"><svg class="i"><use href="#i-search"/></svg><input type="search" id="cpSearch" placeholder="ক্যাম্পেইন খুঁজুন (নাম, আইডিয়া, প্রোডাক্ট, লিংক)…"></div>
+      <div class="row"><div class="chips scroll-x" id="cpStatusChips"></div></div>
+      <div class="row">
+        <select id="cpObj" class="select"></select>
+        <select id="cpProd" class="select"></select>
+        <select id="cpSort" class="select">
+          <option value="new">সম্প্রতি আপডেট</option><option value="start">শুরুর তারিখ</option><option value="prio">অগ্রাধিকার</option><option value="az">নাম A–Z</option>
+        </select>
+      </div>
+    </div>
+    <div class="summary" id="cpSummary"></div>
+    <div id="cpList" class="cp-grid stagger"></div>
+  </section>
 </main>
 
 <!-- Mobile bottom bar -->
@@ -211,6 +242,7 @@
   <button class="tab active" data-view="calendar"><svg class="i"><use href="#i-calendar"/></svg><span>ক্যালেন্ডার</span></button>
   <button class="tab" data-view="captions"><svg class="i"><use href="#i-message"/></svg><span>ক্যাপশন</span></button>
   <button class="tab" data-view="drafts"><svg class="i"><use href="#i-pen"/></svg><span>ড্রাফট</span></button>
+  <button class="tab" data-view="campaigns"><svg class="i"><use href="#i-flag"/></svg><span>ক্যাম্পেইন</span></button>
 </nav>
 <button class="fab" id="fab" aria-label="নতুন যোগ করুন"><svg class="i"><use href="#i-plus"/></svg></button>
 
@@ -268,6 +300,55 @@
       <div class="form-actions">
         <button type="button" class="btn ghost" data-close>বাতিল</button>
         <button type="submit" class="btn primary" id="saveDraftBtn">ড্রাফট সেভ করুন</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Modal: Campaign form ============ -->
+<div class="backdrop" id="m-camp" hidden>
+  <div class="modal modal-xl" role="dialog" aria-modal="true" aria-labelledby="campTitle">
+    <div class="modal-head">
+      <div><h2 id="campTitle">নতুন ক্যাম্পেইন</h2><p class="sub">ক্যাম্পেইনের পরিকল্পনা এক জায়গায় লিখে রাখুন</p></div>
+      <button class="icon-btn" data-close aria-label="বন্ধ করুন"><svg class="i"><use href="#i-x"/></svg></button>
+    </div>
+    <form class="modal-body" id="campForm" autocomplete="off">
+      <label class="fl">ক্যাম্পেইনের নাম *<input type="text" id="cName" placeholder="যেমনঃ শীতকালীন ব্রয়লার কেয়ার ক্যাম্পেইন"></label>
+      <div class="grid2">
+        <label class="fl">উদ্দেশ্য (Objective)<select id="cObjective"></select></label>
+        <label class="fl">স্ট্যাটাস<select id="cStatus"></select></label>
+      </div>
+      <div class="fl">ক্যাটাগরি<div class="chips" id="cCats"></div></div>
+      <div class="fl">প্রোডাক্ট (একাধিক হতে পারে)
+        <div class="tagbox" id="cProdBox"><span id="cProdChips" class="pchips"></span><input type="text" id="cProdInput" list="productList" placeholder="প্রোডাক্টের নাম লিখে Enter চাপুন"></div>
+        <div class="chips sugg" id="cProdSugg"></div>
+      </div>
+      <div class="grid2">
+        <label class="fl">শুরুর তারিখ<input type="date" id="cStart"></label>
+        <label class="fl">শেষ তারিখ<input type="date" id="cEnd"></label>
+      </div>
+      <div class="fl">প্ল্যাটফর্ম<div class="chips" id="cPlats"></div></div>
+      <div class="fl">কনটেন্টের ধরন (Deliverables)<div class="chips" id="cDeliv"></div></div>
+      <div class="grid2">
+        <label class="fl">টার্গেট অডিয়েন্স<input type="text" id="cAudience" placeholder="যেমনঃ ব্রয়লার খামারি, ডিলার"></label>
+        <label class="fl">দায়িত্বে<input type="text" id="cOwner" placeholder="নাম / টিম"></label>
+      </div>
+      <div class="grid2">
+        <label class="fl">অগ্রাধিকার<select id="cPriority"></select></label>
+        <label class="fl">বাজেট (ঐচ্ছিক)<input type="text" id="cBudget" placeholder="যেমনঃ ৫০,০০০ টাকা"></label>
+      </div>
+      <label class="fl">আইডিয়া / কনসেপ্ট<textarea id="cIdea" rows="4" placeholder="ক্যাম্পেইনের মূল আইডিয়া, গল্প বা কনসেপ্ট লিখুন…"></textarea></label>
+      <label class="fl">মূল বার্তা / ট্যাগলাইন<input type="text" id="cMessage" placeholder="যেমনঃ শীতেও সুস্থ খামার, নিশ্চিত মুনাফা"></label>
+      <label class="fl">রেফারেন্স লিংক (প্রতি লাইনে একটি)<textarea id="cLinks" rows="3" placeholder="https://drive.google.com/...&#10;https://facebook.com/..."></textarea></label>
+      <label class="fl">হ্যাশট্যাগ<input type="text" id="cTags" placeholder="#NewHope #WinterCare"></label>
+      <div class="fl">টাস্ক চেকলিস্ট
+        <div class="taskadd"><input type="text" id="cTaskInput" placeholder="টাস্ক লিখে Enter চাপুন"><button type="button" class="btn sm ghost" id="cTaskAdd">যোগ</button></div>
+        <div class="tasklist" id="cTaskList"></div>
+      </div>
+      <label class="fl">নোট<textarea id="cNotes" rows="2" placeholder="অন্যান্য তথ্য…"></textarea></label>
+      <div class="form-actions">
+        <button type="button" class="btn ghost" data-close>বাতিল</button>
+        <button type="submit" class="btn primary" id="saveCampBtn">ক্যাম্পেইন সেভ করুন</button>
       </div>
     </form>
   </div>

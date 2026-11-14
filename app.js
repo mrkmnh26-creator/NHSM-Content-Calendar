@@ -20,6 +20,11 @@
   var PLATFORMS = ['Facebook', 'Instagram', 'LinkedIn', 'YouTube', 'TikTok', 'Others'];
   var DSTATUS = [{ k: 'Draft', l: 'ড্রাফট' }, { k: 'Ready', l: 'প্রস্তুত' }, { k: 'Used', l: 'ব্যবহৃত' }];
   var PSTATUS = ['Pending', 'Done', 'Postpone'];
+  var VIEWS = ['calendar', 'captions', 'drafts', 'campaigns'];
+  var CSTATUS = [{ k: 'Idea', l: 'আইডিয়া' }, { k: 'Planning', l: 'প্ল্যানিং' }, { k: 'Ready', l: 'প্রস্তুত' }, { k: 'Running', l: 'চলমান' }, { k: 'Completed', l: 'সম্পন্ন' }, { k: 'On Hold', l: 'স্থগিত' }];
+  var OBJECTIVES = ['Awareness', 'Lead Generation', 'Sales / Dealer Growth', 'Engagement', 'Education / Farmer Training', 'Product Launch', 'Event / Seasonal'];
+  var PRIORITIES = ['Low', 'Medium', 'High'];
+  var DELIVERABLES = ['Post', 'Reel', 'Story', 'Video', 'Carousel', 'Poster', 'Banner', 'Blog'];
   var DOW = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'];
   var DOWFULL = ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'];
   var MONTHS = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
@@ -119,7 +124,7 @@
   }
 
   /* ---------- state ---------- */
-  var store = { posts: {}, drafts: [], settings: { enabled: false, email: '', daysBefore: 3, hour: 9, includeOverdue: true }, loaded: false };
+  var store = { posts: {}, drafts: [], campaigns: [], settings: { enabled: false, email: '', daysBefore: 3, hour: 9, includeOverdue: true }, loaded: false };
   var ui = {
     view: 'calendar',
     calMode: lsGet(LS.calMode) === 'list' ? 'list' : 'grid',
@@ -131,6 +136,8 @@
     dr: { q: '', product: 'all', cat: 'all', platform: 'all', status: 'all', fav: false, sort: 'new', open: {} },
     dform: { id: null, cat: '' },
     sched: { id: null },
+    cp: { q: '', status: 'all', obj: 'all', product: 'all', sort: 'new' },
+    cform: { id: null, cat: '', products: [], platforms: [], deliv: [], tasks: [] },
     cfDone: null
   };
 
@@ -163,7 +170,7 @@
     return null;
   }
   function persist() {
-    lsSet(LS.cache, JSON.stringify({ posts: store.posts, drafts: store.drafts, settings: store.settings }));
+    lsSet(LS.cache, JSON.stringify({ posts: store.posts, drafts: store.drafts, campaigns: store.campaigns, settings: store.settings }));
   }
   function visibleItems(key) {
     var arr = store.posts[key] || [];
@@ -270,15 +277,16 @@
      VIEW SWITCHING
      ========================================================= */
   function setView(v, push) {
-    if (['calendar', 'captions', 'drafts'].indexOf(v) < 0) v = 'calendar';
+    if (VIEWS.indexOf(v) < 0) v = 'calendar';
     ui.view = v;
-    ['calendar', 'captions', 'drafts'].forEach(function (n) { $('#view-' + n).hidden = n !== v; });
+    VIEWS.forEach(function (n) { $('#view-' + n).hidden = n !== v; });
     $$('[data-view]').forEach(function (b) { b.classList.toggle('active', b.dataset.view === v); });
     $('#fab').hidden = v === 'captions';
     $('#bellPanel').hidden = true;
     if (push !== false && location.hash !== '#' + v) { try { history.replaceState(null, '', '#' + v); } catch (e) { location.hash = v; } }
     if (v === 'captions') { syncLibControls(); renderCaptions(); }
     if (v === 'drafts') renderDrafts();
+    if (v === 'campaigns') renderCampaigns();
     if (v === 'calendar') renderCalendar();
     window.scrollTo(0, 0);
   }
@@ -881,6 +889,277 @@
   }
 
   /* =========================================================
+     CAMPAIGN DRAFTS
+     ========================================================= */
+  var cpStatusLabel = function (k) { var s = CSTATUS.filter(function (x) { return x.k === k; })[0]; return s ? s.l : CSTATUS[0].l; };
+  var cpCls = function (k) { return 'cs-' + String(k || 'Idea').toLowerCase().replace(/\s+/g, ''); };
+  var findCamp = function (id) { return store.campaigns.filter(function (x) { return x.id === id; })[0]; };
+
+  function safeUrl(s) {
+    s = String(s || '').trim();
+    if (!s) return '';
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) { if (/^[^\s\/]+\.[^\s\/]+/.test(s)) s = 'https://' + s; else return ''; }
+    return /^https?:\/\/[^\s]+$/i.test(s) ? s : '';
+  }
+  function parseLinks(txt) {
+    return String(txt || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean).map(function (line) {
+      var m = line.match(/https?:\/\/\S+/i), url = m ? safeUrl(m[0]) : safeUrl(line), host = '';
+      try { host = new URL(url).host.replace(/^www\./, ''); } catch (e) { /* ignore */ }
+      var label = m ? line.replace(m[0], '').replace(/[|\-–:\s]+$/, '').replace(/^[|\-–:\s]+/, '').trim() : '';
+      return { url: url, label: label || host || line };
+    });
+  }
+  function cpWhen(c) {
+    if (!c.start && !c.end) return null;
+    var tk = todayKey(), state;
+    var range = (c.start ? fmtShort(c.start) : '…') + (c.end ? ' – ' + fmtShort(c.end) : '');
+    if (c.status === 'Completed') state = 'সম্পন্ন';
+    else if (c.start && tk < c.start) state = 'শুরু: ' + rel(c.start);
+    else if (c.end && tk > c.end) state = 'সময় শেষ';
+    else if (c.end) state = 'চলছে · ' + diffDays(c.end, tk) + ' দিন বাকি';
+    else state = 'চলছে';
+    return { range: range, state: state };
+  }
+  function knownProducts() {
+    var seen = {}, out = [];
+    function add(n) { n = String(n || '').trim(); var k = pKey(n); if (!k || seen[k]) return; seen[k] = 1; out.push(n); }
+    store.drafts.forEach(function (d) { add(d.product); });
+    store.campaigns.forEach(function (c) { (c.products || []).forEach(add); });
+    return out;
+  }
+  function relatedCaps(c) {
+    var keys = (c.products || []).map(pKey);
+    return store.drafts.filter(function (d) { return keys.indexOf(pKey(d.product)) > -1; });
+  }
+
+  function getCampList() {
+    var P = ui.cp, q = P.q.trim().toLowerCase();
+    var list = store.campaigns.filter(function (c) {
+      if (P.status !== 'all' && c.status !== P.status) return false;
+      if (P.obj !== 'all' && c.objective !== P.obj) return false;
+      if (P.product !== 'all' && (c.products || []).map(pKey).indexOf(P.product) < 0) return false;
+      if (q && (c.name + ' ' + c.idea + ' ' + c.message + ' ' + c.audience + ' ' + c.links + ' ' + c.owner + ' ' + (c.products || []).join(' ')).toLowerCase().indexOf(q) === -1) return false;
+      return true;
+    });
+    var prio = { High: 0, Medium: 1, Low: 2 };
+    list.sort(function (a, b) {
+      if (P.sort === 'az') return String(a.name).localeCompare(String(b.name));
+      if (P.sort === 'start') return (a.start || '9999').localeCompare(b.start || '9999');
+      if (P.sort === 'prio') return (prio[a.priority] - prio[b.priority]) || String(b.updatedAt).localeCompare(String(a.updatedAt));
+      return String(b.updatedAt).localeCompare(String(a.updatedAt));
+    });
+    return list;
+  }
+
+  function renderCampaigns() {
+    var P = ui.cp;
+    $('#cpStatusChips').innerHTML = '<button class="chip' + (P.status === 'all' ? ' active' : '') + '" data-st="all">সব (' + store.campaigns.length + ')</button>' +
+      CSTATUS.map(function (s) {
+        var n = store.campaigns.filter(function (c) { return c.status === s.k; }).length;
+        return '<button class="chip' + (P.status === s.k ? ' active' : '') + '" data-st="' + esc(s.k) + '">' + s.l + (n ? ' · ' + n : '') + '</button>';
+      }).join('');
+    $('#cpObj').innerHTML = '<option value="all">সব উদ্দেশ্য</option>' + OBJECTIVES.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+    $('#cpObj').value = P.obj;
+    var seen = {}, prods = [];
+    store.campaigns.forEach(function (c) { (c.products || []).forEach(function (p) { var k = pKey(p); if (k && !seen[k]) { seen[k] = 1; prods.push({ k: k, n: p }); } }); });
+    $('#cpProd').innerHTML = '<option value="all">সব প্রোডাক্ট</option>' + prods.map(function (p) { return '<option value="' + esc(p.k) + '">' + esc(p.n) + '</option>'; }).join('');
+    $('#cpProd').value = P.product;
+    $('#cpSort').value = P.sort;
+
+    var list = getCampList();
+    var running = store.campaigns.filter(function (c) { return c.status === 'Running'; }).length;
+    $('#cpSummary').innerHTML = '<span><b>' + list.length + '</b> টি ক্যাম্পেইন' + (list.length !== store.campaigns.length ? ' (মোট ' + store.campaigns.length + ')' : '') + (running ? ' · <b>' + running + '</b> টি চলমান' : '') + '</span>';
+    var wrap = $('#cpList');
+    if (!list.length) {
+      wrap.style.display = 'block';
+      wrap.innerHTML = '<div class="empty"><div class="big">🚀</div>' + (store.campaigns.length ? 'এই ফিল্টারে কোনো ক্যাম্পেইন নেই।' : 'এখনো কোনো ক্যাম্পেইন ড্রাফট নেই।<br><span style="font-size:12px">"নতুন ক্যাম্পেইন" বাটনে ক্লিক করে প্রথম ক্যাম্পেইন সাজান।</span>') + '</div>';
+      return;
+    }
+    wrap.style.display = '';
+    wrap.innerHTML = list.map(cpCard).join('');
+  }
+
+  function cpCard(c, i) {
+    var w = cpWhen(c), links = parseLinks(c.links), tasks = c.tasks || [], done = tasks.filter(function (t) { return t.d; }).length;
+    var caps = relatedCaps(c), cat = c.category ? tagCls(c.category) : 'gray';
+    var h = '<article class="cpcard" data-id="' + esc(c.id) + '" style="--i:' + Math.min(i, 14) + '">';
+    h += '<div class="cp-top"><select class="cp-status ' + cpCls(c.status) + '" data-act="status" title="স্ট্যাটাস বদলান">' +
+      CSTATUS.map(function (s) { return '<option value="' + esc(s.k) + '"' + (s.k === c.status ? ' selected' : '') + '>' + s.l + '</option>'; }).join('') + '</select>' +
+      '<span class="prio prio-' + String(c.priority || 'Medium').toLowerCase() + '">' + esc(c.priority || 'Medium') + '</span></div>';
+    h += '<h3 class="cp-name">' + esc(c.name) + '</h3>';
+    h += '<div class="cp-meta">' + (c.category ? '<span class="tag t-' + cat + '">' + esc(c.category) + '</span>' : '') + (c.objective ? '<span class="obj">' + esc(c.objective) + '</span>' : '') + '</div>';
+    if (w) h += '<div class="cp-when">' + icon('calendar') + '<span>' + esc(w.range) + '</span><em>' + esc(w.state) + '</em></div>';
+    if ((c.products || []).length) h += '<div class="cp-prods">' + c.products.map(function (p) { return '<span class="pchip ro">' + esc(p) + '</span>'; }).join('') + '</div>';
+    if (c.idea) h += '<div class="cp-idea">' + esc(c.idea) + '</div>';
+    if (c.message) h += '<div class="cp-msg">' + esc(c.message) + '</div>';
+    var info = [];
+    if ((c.platforms || []).length) info.push(esc(c.platforms.join(' · ')));
+    if ((c.deliverables || []).length) info.push(esc(c.deliverables.join(', ')));
+    if (c.audience) info.push(icon('user') + ' ' + esc(c.audience));
+    if (c.owner) info.push('দায়িত্বে: ' + esc(c.owner));
+    if (c.budget) info.push('বাজেট: ' + esc(c.budget));
+    if (info.length) h += '<div class="cp-info">' + info.map(function (x) { return '<span>' + x + '</span>'; }).join('') + '</div>';
+    if (c.hashtags) h += '<div class="dc-tags">' + esc(c.hashtags) + '</div>';
+    if (links.length) h += '<div class="cp-links">' + links.map(function (l) {
+      return l.url ? '<a class="cp-link" href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + icon('link') + '<span>' + esc(l.label) + '</span></a>'
+        : '<span class="cp-link bad">' + icon('link') + '<span>' + esc(l.label) + '</span></span>';
+    }).join('') + '</div>';
+    if (tasks.length) {
+      h += '<div class="prog"><div class="prog-bar"><i style="width:' + Math.round(done / tasks.length * 100) + '%"></i></div><span>' + done + '/' + tasks.length + '</span></div><div class="cp-tasks">' +
+        tasks.map(function (t, k) { return '<label class="ctask' + (t.d ? ' done' : '') + '"><input type="checkbox" data-task="' + k + '"' + (t.d ? ' checked' : '') + '><span>' + esc(t.t) + '</span></label>'; }).join('') + '</div>';
+    }
+    if (c.notes) h += '<div class="pi-note">' + esc(c.notes) + '</div>';
+    h += '<div class="cp-act"><button class="btn sm ghost" data-act="edit">' + icon('pen') + 'এডিট</button>' +
+      '<button class="btn sm ghost" data-act="cal">' + icon('calendar-plus') + 'ক্যালেন্ডারে</button>' +
+      (caps.length ? '<button class="capchip" data-act="caps" title="এই প্রোডাক্টের ক্যাপশন ড্রাফট দেখুন">✍️ ' + caps.length + ' ক্যাপশন</button>' : '') +
+      '<span class="spacer"></span><button class="ibtn" data-act="dup" title="ডুপ্লিকেট">' + icon('plus') + '</button>' +
+      '<button class="ibtn del" data-act="del" title="মুছুন">' + icon('trash') + '</button></div></article>';
+    return h;
+  }
+
+  /* ----- campaign form ----- */
+  function chipsHtml(list, selected, attr) {
+    return list.map(function (v) { return '<button type="button" class="chip' + (selected.indexOf(v) > -1 ? ' active' : '') + '" ' + attr + '="' + esc(v) + '">' + esc(v) + '</button>'; }).join('');
+  }
+  function renderCampForm() {
+    var F = ui.cform;
+    $('#cCats').innerHTML = TAGS.map(function (t) { return '<button type="button" class="tchip t-' + t.cls + (F.cat === t.name ? ' on' : '') + '" data-cat="' + esc(t.name) + '">' + esc(t.name) + '</button>'; }).join('');
+    $('#cPlats').innerHTML = chipsHtml(PLATFORMS, F.platforms, 'data-v');
+    $('#cDeliv').innerHTML = chipsHtml(DELIVERABLES, F.deliv, 'data-v');
+    $('#cProdChips').innerHTML = F.products.map(function (p) { return '<span class="pchip">' + esc(p) + '<button type="button" data-rm="' + esc(p) + '" aria-label="সরান">×</button></span>'; }).join('');
+    var sel = F.products.map(pKey);
+    var sg = knownProducts().filter(function (p) { return sel.indexOf(pKey(p)) < 0; }).slice(0, 10);
+    $('#cProdSugg').innerHTML = sg.map(function (p) { return '<button type="button" class="chip" data-add="' + esc(p) + '">' + esc(p) + '</button>'; }).join('');
+    $('#cTaskList').innerHTML = F.tasks.map(function (t, i) {
+      return '<div class="trow' + (t.d ? ' done' : '') + '"><label><input type="checkbox" data-ti="' + i + '"' + (t.d ? ' checked' : '') + '><span>' + esc(t.t) + '</span></label><button type="button" data-tr="' + i + '" aria-label="মুছুন">×</button></div>';
+    }).join('');
+    $('#productList').innerHTML = knownProducts().map(function (p) { return '<option value="' + esc(p) + '">'; }).join('');
+  }
+  function addCampProduct(name) {
+    name = String(name || '').trim().replace(/,$/, '').trim();
+    if (!name) return;
+    if (ui.cform.products.map(pKey).indexOf(pKey(name)) < 0) ui.cform.products.push(name);
+    $('#cProdInput').value = '';
+    renderCampForm();
+  }
+  function addCampTask() {
+    var v = $('#cTaskInput').value.trim();
+    if (!v) return;
+    ui.cform.tasks.push({ t: v, d: false });
+    $('#cTaskInput').value = '';
+    renderCampForm();
+    $('#cTaskInput').focus();
+  }
+
+  function openCampForm(id) {
+    var c = id ? findCamp(id) : null;
+    ui.cform = {
+      id: id || null, cat: c ? c.category : '', products: c ? (c.products || []).slice() : [], platforms: c ? (c.platforms || []).slice() : [],
+      deliv: c ? (c.deliverables || []).slice() : [], tasks: c ? (c.tasks || []).map(function (t) { return { t: t.t, d: !!t.d }; }) : []
+    };
+    $('#campTitle').textContent = id ? 'ক্যাম্পেইন এডিট' : 'নতুন ক্যাম্পেইন';
+    $('#saveCampBtn').textContent = id ? 'পরিবর্তন সংরক্ষণ' : 'ক্যাম্পেইন সেভ করুন';
+    $('#cObjective').innerHTML = '<option value="">— বাছাই করুন —</option>' + OBJECTIVES.map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join('');
+    $('#cStatus').innerHTML = CSTATUS.map(function (s) { return '<option value="' + esc(s.k) + '">' + s.l + '</option>'; }).join('');
+    $('#cPriority').innerHTML = PRIORITIES.map(function (p) { return '<option value="' + p + '">' + p + '</option>'; }).join('');
+    $('#cName').value = c ? c.name : '';
+    $('#cObjective').value = c ? c.objective : '';
+    $('#cStatus').value = c ? c.status : 'Idea';
+    $('#cPriority').value = c ? c.priority : 'Medium';
+    $('#cStart').value = c ? c.start : ''; $('#cEnd').value = c ? c.end : '';
+    $('#cAudience').value = c ? c.audience : ''; $('#cOwner').value = c ? c.owner : ''; $('#cBudget').value = c ? c.budget : '';
+    $('#cIdea').value = c ? c.idea : ''; $('#cMessage').value = c ? c.message : ''; $('#cLinks').value = c ? c.links : '';
+    $('#cTags').value = c ? c.hashtags : ''; $('#cNotes').value = c ? c.notes : '';
+    $('#cProdInput').value = ''; $('#cTaskInput').value = '';
+    renderCampForm();
+    openModal('m-camp');
+    if (window.matchMedia && window.matchMedia('(pointer:fine)').matches) setTimeout(function () { $('#cName').focus(); }, 80);
+  }
+
+  function saveCampForm(e) {
+    e.preventDefault();
+    var name = $('#cName').value.trim();
+    if (!name) { var f0 = $('#cName'); f0.classList.remove('shake'); void f0.offsetWidth; f0.classList.add('shake'); f0.focus(); return; }
+    if ($('#cProdInput').value.trim()) addCampProduct($('#cProdInput').value);
+    if ($('#cTaskInput').value.trim()) addCampTask();
+    var start = $('#cStart').value, end = $('#cEnd').value;
+    if (start && end && end < start) { toast('শেষ তারিখ শুরুর আগে হতে পারে না', 'err'); return; }
+    var data = {
+      name: name, objective: $('#cObjective').value, category: ui.cform.cat || '', products: ui.cform.products.slice(), platforms: ui.cform.platforms.slice(),
+      start: start, end: end, audience: $('#cAudience').value.trim(), budget: $('#cBudget').value.trim(), idea: $('#cIdea').value.trim(),
+      message: $('#cMessage').value.trim(), links: $('#cLinks').value.trim(), deliverables: ui.cform.deliv.slice(), hashtags: normTags($('#cTags').value),
+      owner: $('#cOwner').value.trim(), status: $('#cStatus').value || 'Idea', priority: $('#cPriority').value || 'Medium', notes: $('#cNotes').value.trim(),
+      tasks: ui.cform.tasks.map(function (t) { return { t: t.t, d: !!t.d }; })
+    };
+    closeModal('m-camp');
+    if (ui.cform.id) {
+      var c = findCamp(ui.cform.id); if (!c) return;
+      var snap = JSON.parse(JSON.stringify(c));
+      mutate('updateCampaign', Object.assign({ id: c.id }, data),
+        function () { Object.assign(c, data, { updatedAt: nowStr() }); renderCampaigns(); },
+        function () { Object.assign(c, snap); renderCampaigns(); },
+        'ক্যাম্পেইন আপডেট হয়েছে');
+    } else {
+      var nc = Object.assign({ id: uid(), createdAt: nowStr(), updatedAt: nowStr() }, data);
+      mutate('addCampaign', Object.assign({ id: nc.id }, data),
+        function () { store.campaigns.unshift(nc); renderCampaigns(); },
+        function () { store.campaigns = store.campaigns.filter(function (x) { return x.id !== nc.id; }); renderCampaigns(); },
+        'ক্যাম্পেইন সেভ হয়েছে', { label: 'এডিট', fn: function () { openCampForm(nc.id); } });
+    }
+  }
+
+  function deleteCamp(id) {
+    var c = findCamp(id); if (!c) return;
+    confirmBox({ title: 'ক্যাম্পেইনটি মুছবেন?', text: '"' + c.name + '" স্থায়ীভাবে মুছে যাবে।', ok: 'মুছুন', danger: true }).then(function (yes) {
+      if (!yes) return;
+      var idx = store.campaigns.indexOf(c);
+      mutate('deleteCampaign', { id: id },
+        function () { store.campaigns.splice(idx, 1); renderCampaigns(); },
+        function () { store.campaigns.splice(idx, 0, c); renderCampaigns(); },
+        'ক্যাম্পেইন মুছে ফেলা হয়েছে');
+    });
+  }
+
+  function dupCamp(id) {
+    var c = findCamp(id); if (!c) return;
+    var nc = JSON.parse(JSON.stringify(c));
+    nc.id = uid(); nc.name = c.name + ' (কপি)'; nc.status = 'Idea'; nc.createdAt = nowStr(); nc.updatedAt = nowStr();
+    nc.tasks = (nc.tasks || []).map(function (t) { return { t: t.t, d: false }; });
+    var data = Object.assign({}, nc); delete data.createdAt; delete data.updatedAt;
+    mutate('addCampaign', data,
+      function () { store.campaigns.unshift(nc); renderCampaigns(); },
+      function () { store.campaigns = store.campaigns.filter(function (x) { return x.id !== nc.id; }); renderCampaigns(); },
+      'ডুপ্লিকেট তৈরি হয়েছে', { label: 'এডিট', fn: function () { openCampForm(nc.id); } });
+  }
+
+  function campToCalendar(id) {
+    var c = findCamp(id); if (!c) return;
+    var date = c.start || addDays(todayKey(), 1);
+    var notes = 'ক্যাম্পেইন' + (c.message ? ': ' + c.message : '');
+    var post = { id: uid(), title: c.name, tags: c.category ? [c.category] : [], time: '10:00', notes: notes, status: 'Pending', caption: '' };
+    mutate('addPost', { id: post.id, date: date, title: post.title, tags: post.tags, time: post.time, notes: notes, caption: '' },
+      function () { putPost(date, post); renderAll(); },
+      function () { dropPost(post.id); renderAll(); },
+      fmtShort(date) + '-এ ক্যালেন্ডারে যোগ হয়েছে', { label: 'দেখুন', fn: function () { var d0 = parseKey(date); ui.cur = new Date(d0.getFullYear(), d0.getMonth(), 1); setView('calendar'); openDay(date); } });
+  }
+
+  function setCampStatus(id, status) {
+    var c = findCamp(id); if (!c || c.status === status) return;
+    var prev = c.status;
+    mutate('setCampaignStatus', { id: id, status: status },
+      function () { c.status = status; renderCampaigns(); },
+      function () { c.status = prev; renderCampaigns(); });
+  }
+
+  function toggleCampTask(id, idx, checked) {
+    var c = findCamp(id); if (!c || !c.tasks[idx]) return;
+    var prev = JSON.parse(JSON.stringify(c.tasks));
+    mutate('setCampaignTasks', { id: id, tasks: c.tasks.map(function (t, k) { return { t: t.t, d: k === idx ? checked : !!t.d }; }) },
+      function () { c.tasks[idx].d = checked; renderCampaigns(); },
+      function () { c.tasks = prev; renderCampaigns(); });
+  }
+
+  /* =========================================================
      REMINDERS
      ========================================================= */
   function getReminders() {
@@ -994,6 +1273,7 @@
     renderCalendar();
     if (ui.view === 'captions') renderCaptions();
     if (ui.view === 'drafts') renderDrafts();
+    if (ui.view === 'campaigns') renderCampaigns();
     if (!$('#m-day').hidden) renderDay();
   }
 
@@ -1001,7 +1281,7 @@
     var btn = $('#refreshBtn');
     btn.classList.add('spin');
     return api('bootstrap').then(function (d) {
-      store.posts = d.posts || {}; store.drafts = d.drafts || [];
+      store.posts = d.posts || {}; store.drafts = d.drafts || []; store.campaigns = d.campaigns || [];
       store.settings = Object.assign(store.settings, d.settings || {});
       store.loaded = true;
       persist(); renderAll(); maybeNotify();
@@ -1021,7 +1301,7 @@
     window.addEventListener('hashchange', function () { setView(location.hash.replace('#', ''), false); });
     $('#refreshBtn').addEventListener('click', function () { loadAll(true); });
     $('#settingsBtn').addEventListener('click', openSettings);
-    $('#fab').addEventListener('click', function () { if (ui.view === 'drafts') openDraftForm(); else openDay(todayKey()); });
+    $('#fab').addEventListener('click', function () { if (ui.view === 'drafts') openDraftForm(); else if (ui.view === 'campaigns') openCampForm(); else openDay(todayKey()); });
 
     /* bell */
     $('#bellBtn').addEventListener('click', function (e) { e.stopPropagation(); $('#bellPanel').hidden = !$('#bellPanel').hidden; $('#monthPop').hidden = true; });
@@ -1204,6 +1484,57 @@
     });
     $('#schedForm').addEventListener('submit', submitSchedule);
 
+    /* campaigns */
+    $('#newCampBtn').addEventListener('click', function () { openCampForm(); });
+    $('#cpSearch').addEventListener('input', function (e) { ui.cp.q = e.target.value; renderCampaigns(); });
+    $('#cpStatusChips').addEventListener('click', function (e) { var b = e.target.closest('[data-st]'); if (!b) return; ui.cp.status = b.dataset.st; renderCampaigns(); });
+    $('#cpObj').addEventListener('change', function (e) { ui.cp.obj = e.target.value; renderCampaigns(); });
+    $('#cpProd').addEventListener('change', function (e) { ui.cp.product = e.target.value; renderCampaigns(); });
+    $('#cpSort').addEventListener('change', function (e) { ui.cp.sort = e.target.value; renderCampaigns(); });
+    $('#cpList').addEventListener('change', function (e) {
+      var card = e.target.closest('.cpcard'); if (!card) return;
+      if (e.target.dataset.act === 'status') setCampStatus(card.dataset.id, e.target.value);
+      else if (e.target.dataset.task !== undefined) toggleCampTask(card.dataset.id, +e.target.dataset.task, e.target.checked);
+    });
+    $('#cpList').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-act]'); if (!b) return;
+      var card = b.closest('.cpcard'), id = card.dataset.id, act = b.dataset.act;
+      if (act === 'edit') openCampForm(id);
+      else if (act === 'dup') dupCamp(id);
+      else if (act === 'del') deleteCamp(id);
+      else if (act === 'cal') campToCalendar(id);
+      else if (act === 'caps') { var c = findCamp(id), rel0 = c ? relatedCaps(c)[0] : null; if (rel0) ui.dr.product = pKey(rel0.product); setView('drafts'); }
+    });
+    $('#exportCampBtn').addEventListener('click', function () {
+      var rows = [['Name', 'Status', 'Priority', 'Objective', 'Category', 'Products', 'Start', 'End', 'Platforms', 'Deliverables', 'Audience', 'Owner', 'Budget', 'Idea', 'Message', 'Links', 'Hashtags', 'Tasks', 'Notes']];
+      store.campaigns.forEach(function (c) {
+        rows.push([c.name, c.status, c.priority, c.objective, c.category, (c.products || []).join(', '), c.start, c.end, (c.platforms || []).join(', '), (c.deliverables || []).join(', '),
+          c.audience, c.owner, c.budget, c.idea, c.message, c.links, c.hashtags, (c.tasks || []).map(function (t) { return (t.d ? '[x] ' : '[ ] ') + t.t; }).join('; '), c.notes]);
+      });
+      downloadCSV('campaigns.csv', rows);
+    });
+    $('#campForm').addEventListener('submit', saveCampForm);
+    $('#cCats').addEventListener('click', function (e) { var b = e.target.closest('[data-cat]'); if (!b) return; ui.cform.cat = ui.cform.cat === b.dataset.cat ? '' : b.dataset.cat; renderCampForm(); });
+    ['cPlats', 'cDeliv'].forEach(function (id) {
+      $('#' + id).addEventListener('click', function (e) {
+        var b = e.target.closest('[data-v]'); if (!b) return;
+        var arr = id === 'cPlats' ? ui.cform.platforms : ui.cform.deliv, i = arr.indexOf(b.dataset.v);
+        if (i > -1) arr.splice(i, 1); else arr.push(b.dataset.v);
+        renderCampForm();
+      });
+    });
+    $('#cProdChips').addEventListener('click', function (e) { var b = e.target.closest('[data-rm]'); if (!b) return; ui.cform.products = ui.cform.products.filter(function (p) { return p !== b.dataset.rm; }); renderCampForm(); });
+    $('#cProdSugg').addEventListener('click', function (e) { var b = e.target.closest('[data-add]'); if (b) addCampProduct(b.dataset.add); });
+    $('#cProdInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addCampProduct(e.target.value); }
+      else if (e.key === 'Backspace' && !e.target.value && ui.cform.products.length) { ui.cform.products.pop(); renderCampForm(); }
+    });
+    $('#cProdInput').addEventListener('change', function (e) { if (e.target.value.trim()) addCampProduct(e.target.value); });
+    $('#cTaskInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); addCampTask(); } });
+    $('#cTaskAdd').addEventListener('click', addCampTask);
+    $('#cTaskList').addEventListener('change', function (e) { var i = e.target.dataset.ti; if (i === undefined) return; ui.cform.tasks[+i].d = e.target.checked; renderCampForm(); });
+    $('#cTaskList').addEventListener('click', function (e) { var b = e.target.closest('[data-tr]'); if (!b) return; ui.cform.tasks.splice(+b.dataset.tr, 1); renderCampForm(); });
+
     /* settings */
     $('#setEnabled').addEventListener('change', syncSettingsUI);
     $('#setForm').addEventListener('submit', function (e) { e.preventDefault(); saveSettings(false); });
@@ -1243,7 +1574,7 @@
     bind();
     try {
       var c = JSON.parse(lsGet(LS.cache) || 'null');
-      if (c && c.posts) { store.posts = c.posts; store.drafts = c.drafts || []; store.settings = Object.assign(store.settings, c.settings || {}); store.loaded = true; }
+      if (c && c.posts) { store.posts = c.posts; store.drafts = c.drafts || []; store.campaigns = c.campaigns || []; store.settings = Object.assign(store.settings, c.settings || {}); store.loaded = true; }
     } catch (e) { /* ignore */ }
     setView(location.hash.replace('#', '') || 'calendar', false);
     loadAll();
