@@ -981,13 +981,13 @@
 
   function cpCard(c, i) {
     var w = cpWhen(c), links = parseLinks(c.links), tasks = c.tasks || [], done = tasks.filter(function (t) { return t.d; }).length;
-    var caps = relatedCaps(c), cat = c.category ? tagCls(c.category) : 'gray';
+    var caps = relatedCaps(c), cat = c.category === 'All' ? 'all' : (c.category ? tagCls(c.category) : 'gray');
     var h = '<article class="cpcard" data-id="' + esc(c.id) + '" style="--i:' + Math.min(i, 14) + '">';
     h += '<div class="cp-top"><select class="cp-status ' + cpCls(c.status) + '" data-act="status" title="স্ট্যাটাস বদলান">' +
       CSTATUS.map(function (s) { return '<option value="' + esc(s.k) + '"' + (s.k === c.status ? ' selected' : '') + '>' + s.l + '</option>'; }).join('') + '</select>' +
       '<span class="prio prio-' + String(c.priority || 'Medium').toLowerCase() + '">' + esc(c.priority || 'Medium') + '</span></div>';
     h += '<h3 class="cp-name">' + esc(c.name) + '</h3>';
-    h += '<div class="cp-meta">' + (c.category ? '<span class="tag t-' + cat + '">' + esc(c.category) + '</span>' : '') + (c.objective ? '<span class="obj">' + esc(c.objective) + '</span>' : '') + '</div>';
+    h += '<div class="cp-meta">' + (c.category ? '<span class="tag t-' + cat + '">' + esc(c.category === 'All' ? 'All Categories' : c.category) + '</span>' : '') + (c.objective ? '<span class="obj">' + esc(c.objective) + '</span>' : '') + '</div>';
     if (w) h += '<div class="cp-when">' + icon('calendar') + '<span>' + esc(w.range) + '</span><em>' + esc(w.state) + '</em></div>';
     if ((c.products || []).length) h += '<div class="cp-prods">' + c.products.map(function (p) { return '<span class="pchip ro">' + esc(p) + '</span>'; }).join('') + '</div>';
     if (c.idea) h += '<div class="cp-idea">' + esc(c.idea) + '</div>';
@@ -1023,7 +1023,8 @@
   }
   function renderCampForm() {
     var F = ui.cform;
-    $('#cCats').innerHTML = TAGS.map(function (t) { return '<button type="button" class="tchip t-' + t.cls + (F.cat === t.name ? ' on' : '') + '" data-cat="' + esc(t.name) + '">' + esc(t.name) + '</button>'; }).join('');
+    $('#cCats').innerHTML = TAGS.map(function (t) { return '<button type="button" class="tchip t-' + t.cls + (F.cat === t.name ? ' on' : '') + '" data-cat="' + esc(t.name) + '">' + esc(t.name) + '</button>'; }).join('') +
+      '<button type="button" class="tchip t-all' + (F.cat === 'All' ? ' on' : '') + '" data-cat="All" title="সব ক্যাটাগরির জন্য">All</button>';
     $('#cPlats').innerHTML = chipsHtml(PLATFORMS, F.platforms, 'data-v');
     $('#cDeliv').innerHTML = chipsHtml(DELIVERABLES, F.deliv, 'data-v');
     $('#cProdChips').innerHTML = F.products.map(function (p) { return '<span class="pchip">' + esc(p) + '<button type="button" data-rm="' + esc(p) + '" aria-label="সরান">×</button></span>'; }).join('');
@@ -1136,7 +1137,7 @@
     var c = findCamp(id); if (!c) return;
     var date = c.start || addDays(todayKey(), 1);
     var notes = 'ক্যাম্পেইন' + (c.message ? ': ' + c.message : '');
-    var post = { id: uid(), title: c.name, tags: c.category ? [c.category] : [], time: '10:00', notes: notes, status: 'Pending', caption: '' };
+    var post = { id: uid(), title: c.name, tags: c.category === 'All' ? TAGS.slice(0, 3).map(function (t) { return t.name; }) : (c.category ? [c.category] : []), time: '10:00', notes: notes, status: 'Pending', caption: '' };
     mutate('addPost', { id: post.id, date: date, title: post.title, tags: post.tags, time: post.time, notes: notes, caption: '' },
       function () { putPost(date, post); renderAll(); },
       function () { dropPost(post.id); renderAll(); },

@@ -499,3 +499,6 @@ textarea{resize:vertical;min-height:60px;line-height:1.55}
   #newCampBtn{display:none}
 }
 .cp-status{width:auto;background-color:#EDF1F5}
+
+.t-all{background:var(--brand-50)!important;color:var(--brand-d)!important;border-color:transparent}
+.dot.d-all{background:var(--brand)}
